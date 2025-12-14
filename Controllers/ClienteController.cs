@@ -35,5 +35,17 @@ namespace Biblioteca.Controllers
             if (cliente == null) return NotFound();
             return Ok(cliente);
         }
+
+        // ------------------- NOVO: Atualizar Cliente -------------------
+        [HttpPut("{id}")]
+        public async Task<ActionResult<ClienteResponse>> Atualizar(int id, ClienteRequest request)
+        {
+            var clienteAtualizado = await _clienteService.AtualizarClienteAsync(id, request);
+
+            if (clienteAtualizado == null)
+                return NotFound();
+
+            return Ok(clienteAtualizado);
+        }
     }
 }

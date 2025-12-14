@@ -28,12 +28,24 @@ namespace Biblioteca.Data
                 .HasForeignKey<Cliente>(c => c.PessoaId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            
+            //Impedir que dois Clientes aponte para mesma Pessoa
+            modelBuilder.Entity<Cliente>()
+                .HasIndex(c => c.PessoaId)
+                .IsUnique();
+
             // Relacionamento 1-1 Pessoa <-> Funcionario
             modelBuilder.Entity<Funcionario>()
                 .HasOne(f => f.Pessoa)
                 .WithOne(p => p.Funcionario)
                 .HasForeignKey<Funcionario>(f => f.PessoaId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            //Impedir que dois Funcionarios aponte para a mesma Pessoa
+            modelBuilder.Entity<Funcionario>()
+                .HasIndex(f => f.PessoaId)
+                .IsUnique();
+
 
             base.OnModelCreating(modelBuilder);
         }

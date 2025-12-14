@@ -28,26 +28,19 @@ namespace Biblioteca.Services
                 Cpf = request.Cpf
             };
 
-            // Inserimos essa pessoa no banco...
             _context.Pessoas.Add(pessoa);
-
-            // ...e salvamos para que o banco gere o Id (chave primária).
             await _context.SaveChangesAsync();
 
-            // Agora que a pessoa existe e já tem um Id,
-            // criamos o Cliente ligado a essa Pessoa.
+            // Criamos o Cliente ligado a essa Pessoa.
             var cliente = new Cliente
             {
-                // A FK apontando para Pessoa.Id garante a relação 1-para-1.
                 PessoaId = pessoa.Id,
                 Ativo = true
             };
 
-            // Inserimos o Cliente no banco
             _context.Clientes.Add(cliente);
             await _context.SaveChangesAsync();
 
-            // Retornamos um DTO (ClienteResponse) contendo informações tanto da Pessoa quanto do Cliente.
             return new ClienteResponse
             {
                 Id = cliente.Id,
@@ -59,34 +52,56 @@ namespace Biblioteca.Services
 
         public async Task<List<ClienteResponse>> ObterTodosAsync()
         {
-            // Pegamos todos os clientes do banco, mas com um detalhe importante:
-            // Include(c => c.Pessoa) faz o EF também carregar os dados da Pessoa associada a cada Cliente.
             var clientes = await _context.Clientes
                 .Include(c => c.Pessoa)
                 .ToListAsync();
 
-            // Convertendo cada entidade Cliente em ClienteResponse (DTO).
             return clientes.Select(c => new ClienteResponse
             {
                 Id = c.Id,
-                Nome = c.Pessoa.Nome, // Nome vem da Pessoa associada
-                Cpf = c.Pessoa.Cpf,   // CPF também
+                Nome = c.Pessoa.Nome,
+                Cpf = c.Pessoa.Cpf,
                 Ativo = c.Ativo
             }).ToList();
         }
 
         public async Task<ClienteResponse?> ObterPorIdAsync(int id)
         {
-            // Busca um único Cliente pelo Id.
-        
             var cliente = await _context.Clientes
                 .Include(c => c.Pessoa)
                 .FirstOrDefaultAsync(c => c.Id == id);
 
-            // Se não achou o cliente, devolve null.
             if (cliente == null) return null;
 
-            // Monta o DTO com as informações combinadas.
+            return new ClienteResponse
+            {
+                Id = cliente.Id,
+                Nome = cliente.Pessoa.Nome,
+                Cpf = cliente.Pessoa.Cpf,
+                Ativo = cliente.Ativo
+            };
+        }
+
+        // ------------------- NOVO: Atualizar Cliente -------------------
+        public async Task<ClienteResponse?> AtualizarClienteAsync(int id, ClienteRequest request)
+        {
+            // Busca o cliente pelo Id, incluindo a Pessoa associada.
+            var cliente = await _context.Clientes
+                .Include(c => c.Pessoa)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            // Se não existir, retorna null
+            if (cliente == null)
+                return null;
+
+            // Atualiza apenas o Nome da Pessoa.
+            // CPF é ignorado para não quebrar regra de negócio.
+            cliente.Pessoa.Nome = request.Nome;
+
+            // Salva as alterações no banco.
+            await _context.SaveChangesAsync();
+
+            // Retorna o cliente atualizado.
             return new ClienteResponse
             {
                 Id = cliente.Id,

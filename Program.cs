@@ -1,3 +1,7 @@
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using Biblioteca.Data;
 using Biblioteca.Services;
 using Microsoft.EntityFrameworkCore;
@@ -5,20 +9,42 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Conexão com o banco
+// Configura o DbContext com SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-// Registrar serviços concretos (sem interface)
+// Registro dos serviços de negócio (1 instância por requisição)
 builder.Services.AddScoped<ClienteService>();
+builder.Services.AddScoped<FuncionarioService>();
+builder.Services.AddScoped<AuthService>();
 
+// Configuração da autenticação JWT
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+        )
+    };
+});
 
-// Controllers + configuração JSON
+// Controllers e configuração de serialização JSON
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Evita ciclos de referência, muito comum em EF
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.WriteIndented = true;
     });
@@ -29,7 +55,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Swagger apenas em dev
+// Swagger apenas em ambiente de desenvolvimento
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -38,8 +64,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Middleware de segurança
+app.UseAuthentication(); // valida o token JWT
+app.UseAuthorization();  // aplica regras de acesso
 
-// Mapeia os controllers automaticamente
+// Mapeia os controllers
 app.MapControllers();
 
 app.Run();
