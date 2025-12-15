@@ -67,7 +67,6 @@ namespace Biblioteca.Services
             };
         }
 
-    
         // 2. LISTAGEM DE FUNCIONÁRIOS
         public async Task<List<FuncionarioResponse>> ObterTodosAsync()
         {
@@ -88,9 +87,7 @@ namespace Biblioteca.Services
             }).ToList();
         }
 
-       
         // BUSCAR FUNCIONÁRIO POR ID
-       
         public async Task<FuncionarioResponse?> ObterPorIdAsync(int id)
         {
             // Busca o funcionário pelo Id, incluindo dados da Pessoa
@@ -112,48 +109,55 @@ namespace Biblioteca.Services
             };
         }
 
-       
-        // ATUALIZAÇÃO DE FUNCIONÁRIO
-       
+        // ATUALIZAÇÃO DE FUNCIONÁRIO (não altera CPF)
         public async Task<FuncionarioResponse> AtualizarFuncionarioAsync(int id, FuncionarioRequest request)
         {
-            // Busca o funcionário pelo Id e inclui os dados da Pessoa
             var funcionario = await _context.Funcionarios
                 .Include(f => f.Pessoa)
                 .FirstOrDefaultAsync(f => f.Id == id);
 
-            // Se não existir, lança exceção
             if (funcionario == null)
                 throw new Exception("Funcionario nao encontrado");
 
-            // Atualiza dados da Pessoa
-            funcionario.Pessoa.Nome = request.Nome;
-            funcionario.Pessoa.Cpf = request.Cpf;
+            // Atualiza apenas dados que podem ser alterados
+            funcionario.Pessoa.Nome = request.Nome; // nome pode ser atualizado
+            funcionario.Email = request.Email;      // email pode ser atualizado
+            funcionario.Cargo = request.Cargo;      // cargo pode ser atualizado
 
-            // Atualiza dados do Funcionario
-            funcionario.Email = request.Email;
-            funcionario.Cargo = request.Cargo;
-
-            // Atualiza a senha somente se foi fornecida
+            // Atualiza a senha apenas se fornecida
             if (!string.IsNullOrWhiteSpace(request.Senha))
                 funcionario.SenhaHash = GerarHash(request.Senha);
 
-            // Salva todas as alterações no banco
             await _context.SaveChangesAsync();
 
-            // Retorna DTO atualizado
             return new FuncionarioResponse
             {
                 Id = funcionario.Id,
                 Nome = funcionario.Pessoa.Nome,
-                Cpf = funcionario.Pessoa.Cpf,
+                Cpf = funcionario.Pessoa.Cpf, // CPF não é alterado
                 Email = funcionario.Email,
                 Cargo = funcionario.Cargo,
                 Ativo = funcionario.Ativo
             };
         }
 
-        //  MÉTODO PRIVADO PARA HASH DE SENHA
+        // NOVO MÉTODO: Atualiza apenas a senha, com confirmação da senha antiga
+        public async Task AtualizarSenhaAsync(int id, AtualizarSenhaRequest request)
+        {
+            var funcionario = await _context.Funcionarios.FirstOrDefaultAsync(f => f.Id == id);
+            if (funcionario == null)
+                throw new Exception("Funcionário não encontrado.");
+
+            // Verifica se a senha antiga bate
+            if (funcionario.SenhaHash != GerarHash(request.SenhaAntiga))
+                throw new Exception("Senha antiga incorreta.");
+
+            // Atualiza para a nova senha
+            funcionario.SenhaHash = GerarHash(request.NovaSenha);
+            await _context.SaveChangesAsync();
+        }
+
+        // MÉTODO PRIVADO PARA HASH DE SENHA
         private static string GerarHash(string senha)
         {
             using var sha256 = SHA256.Create();
@@ -161,4 +165,6 @@ namespace Biblioteca.Services
             return Convert.ToBase64String(bytes);
         }
     }
+
+   
 }
