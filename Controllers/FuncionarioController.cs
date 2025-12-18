@@ -17,7 +17,7 @@ namespace Biblioteca.Controllers
             _funcionarioService = funcionarioService;
         }
 
-        // Cria um novo funcionário
+        // Cria um novo funcionário 
         [HttpPost] 
         public async Task<ActionResult<FuncionarioResponse>> Criar(FuncionarioRequest request)
         {

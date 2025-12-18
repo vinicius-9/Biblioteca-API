@@ -18,6 +18,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<FuncionarioService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<LivroService>();
+
 
 // Configuração da autenticação JWT
 builder.Services.AddAuthentication(options =>
