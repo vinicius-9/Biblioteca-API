@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Biblioteca.Services
 {
-    // Regras de negócio relacionadas a Livro
     public class LivroService
     {
         private readonly AppDbContext _context;
@@ -15,14 +14,14 @@ namespace Biblioteca.Services
             _context = context;
         }
 
-        // Criar um livro
         public async Task<LivroResponse> CriarAsync(LivroRequest request)
         {
             var livro = new Livro
             {
                 Titulo = request.Titulo,
                 Autor = request.Autor,
-                AnoPublicacao = request.AnoPublicacao
+                AnoPublicacao = request.AnoPublicacao,
+                Ativo = true
             };
 
             _context.Livros.Add(livro);
@@ -38,7 +37,6 @@ namespace Biblioteca.Services
             };
         }
 
-        // Buscar livro por Id
         public async Task<LivroResponse?> ObterPorIdAsync(int id)
         {
             var livro = await _context.Livros
@@ -58,7 +56,6 @@ namespace Biblioteca.Services
             };
         }
 
-        // Atualizar livro
         public async Task<bool> AtualizarAsync(int id, LivroRequest request)
         {
             var livro = await _context.Livros
@@ -75,7 +72,21 @@ namespace Biblioteca.Services
             return true;
         }
 
-        // Remover livro
+        // novo: ativa / desativa livro
+        public async Task<bool> AtualizarAtivoAsync(int id, bool ativo)
+        {
+            var livro = await _context.Livros
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            if (livro == null)
+                return false;
+
+            livro.Ativo = ativo;
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
         public async Task<bool> DeletarAsync(int id)
         {
             var livro = await _context.Livros

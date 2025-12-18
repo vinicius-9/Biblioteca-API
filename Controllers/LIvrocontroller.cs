@@ -4,16 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biblioteca.Controllers
 {
-    
     [ApiController]
- 
     [Route("api/[controller]")]
     public class LivroController : ControllerBase
     {
-      
         private readonly LivroService _service;
 
-     
         public LivroController(LivroService service)
         {
             _service = service;
@@ -38,11 +34,9 @@ namespace Biblioteca.Controllers
         {
             var livro = await _service.ObterPorIdAsync(id);
 
-       
             if (livro == null)
                 return NotFound();
 
-           
             return Ok(livro);
         }
 
@@ -50,14 +44,11 @@ namespace Biblioteca.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Atualizar(int id, [FromBody] LivroRequest request)
         {
-           
             var atualizado = await _service.AtualizarAsync(id, request);
 
-            
             if (!atualizado)
                 return NotFound();
 
-            
             return NoContent();
         }
 
@@ -65,14 +56,23 @@ namespace Biblioteca.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Deletar(int id)
         {
-            
             var removido = await _service.DeletarAsync(id);
 
-          
             if (!removido)
                 return NotFound();
 
-         
+            return NoContent();
+        }
+
+        // Novo método: ativar/desativar livro
+        [HttpPatch("{id}/ativo")]
+        public async Task<IActionResult> AtualizarAtivo(int id, [FromBody] bool ativo)
+        {
+            var atualizado = await _service.AtualizarAtivoAsync(id, ativo);
+
+            if (!atualizado)
+                return NotFound();
+
             return NoContent();
         }
     }
