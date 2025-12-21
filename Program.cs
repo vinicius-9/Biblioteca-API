@@ -19,7 +19,7 @@ builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<FuncionarioService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<LivroService>();
-
+builder.Services.AddScoped<EmprestimoService>();
 
 // Configuração da autenticação JWT
 builder.Services.AddAuthentication(options =>

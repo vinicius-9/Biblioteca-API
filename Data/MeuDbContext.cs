@@ -14,6 +14,8 @@ namespace Biblioteca.Data
         public DbSet<Cliente> Clientes { get; set; }
         public DbSet<Funcionario> Funcionarios { get; set; }
         public DbSet<Livro> Livros { get; set; }
+        
+        public DbSet<Emprestimo> Emprestimos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -46,9 +48,26 @@ namespace Biblioteca.Data
             modelBuilder.Entity<Funcionario>()
                 .HasIndex(f => f.PessoaId)
                 .IsUnique();
+          
 
+            modelBuilder.Entity<Emprestimo>()
+                .HasOne(e => e.Livro)
+                .WithMany()
+                .HasForeignKey(e => e.LivroId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Emprestimo>()
+               .HasOne(e => e.Cliente)
+               .WithMany()
+               .HasForeignKey(e => e.ClienteId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Emprestimo>()
+               .HasOne(e => e.Funcionario)
+               .WithMany()
+               .HasForeignKey(e => e.FuncionarioId)
+               .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }
