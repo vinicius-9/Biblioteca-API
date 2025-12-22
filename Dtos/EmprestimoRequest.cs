@@ -5,5 +5,6 @@ namespace Biblioteca.Dtos
         public int LivroId { get; set; }
         public int ClienteId { get; set; }
         public int FuncionarioId { get; set; }
+        public DateTime DataEmprestimo { get; set; }
     }
 }

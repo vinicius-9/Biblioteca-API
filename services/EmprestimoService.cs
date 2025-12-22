@@ -47,13 +47,14 @@ namespace Biblioteca.Services
             if (livroJaEmprestado)
                 throw new Exception("Este livro já está emprestado.");
 
-            var emprestimo = new Emprestimo
-            {
-                LivroId = request.LivroId,
-                ClienteId = request.ClienteId,
-                FuncionarioId = request.FuncionarioId,
-                DataEmprestimo = DateTime.UtcNow
-            };
+           var emprestimo = new Emprestimo
+           {
+               LivroId = request.LivroId,
+               ClienteId = request.ClienteId,
+               FuncionarioId = request.FuncionarioId,
+               DataEmprestimo = request.DataEmprestimo
+           };
+
 
             _context.Emprestimos.Add(emprestimo);
             await _context.SaveChangesAsync();
