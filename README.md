@@ -1,4 +1,4 @@
-# 📚 Biblioteca API
+# Biblioteca API
 
 API REST desenvolvida em **ASP.NET Core** para controle de clientes, funcionários, livros e empréstimos.
 
