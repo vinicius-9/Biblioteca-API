@@ -49,4 +49,4 @@ Vinicius Pereira
 
 📧 vinicius.pereiragoncalves.online@gmail.com  
 
-📅 2025
+
